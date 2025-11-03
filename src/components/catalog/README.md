@@ -1,19 +1,62 @@
 # Каталог товаров
 
-Этот модуль показывает пример использования паттернов в блоке "Каталог товаров": Composite, Iterator, Proxy, Flyweight, Visitor.
+Модуль реализует функциональность каталога товаров с использованием паттернов проектирования.
 
-Коротко:
-- `CatalogCategory` — категория каталога (Composite)
-- `Product` — товар, использует Flyweight для общих данных (название, описание, цена) и Proxy для ленивой загрузки изображения
-- `ArrayIterator` — итератор для простого перебора
-- `ViewStatsVisitor` — пример Visitor для подсчёта просмотров
+## Использованные паттерны
 
-Пример использования (в коде):
+### Composite
+- Иерархия категорий и товаров (`CatalogCategory`)
 
-1. Создайте фабрику загрузчиков изображений и экземпляр `Catalog`.
-2. Создайте категории и товары через `catalog.createProduct(...)`.
-3. Добавьте товары в категории (`category.addItem(product)`).
-4. Итерация: `catalog.productsIterator(category)` или глубокая итерация `for (const p of catalog.deepProducts(category))`.
-5. Собирайте статистику: `catalog.applyVisitor(category, visitor)`.
+### Iterator
+- Перебор товаров в категориях (`ArrayIterator`, `productsIterator`, `deepProducts`)
 
-Модули ориентированы на повторное использование и легко тестируются потому, что фабрика загрузчиков изображений инъецируется в `Catalog`.
+### Proxy
+- Ленивая загрузка изображений товаров (`ImageProxy`)
+
+### Flyweight
+- Разделение intrinsic-данных товаров (`ProductFlyweightFactory`, `ProductIntrinsic`)
+
+### Visitor
+- Сбор статистики и обход товаров (`ViewStatsVisitor`, `applyVisitor`)
+
+## Примеры использования
+
+```typescript
+// Создание каталога и фабрики загрузчиков
+const imageFactory = (url?: string) => new ImageProxy(url ?? '', 'placeholder');
+const catalog = new Catalog(imageFactory);
+
+// Создание категорий
+const phones = new CatalogCategory('Phones');
+const laptops = new CatalogCategory('Laptops');
+catalog.root.addChild(phones);
+catalog.root.addChild(laptops);
+
+// Создание товаров
+const p1 = catalog.createProduct('p1', { name: 'Phone X', price: 799, imageUrl: 'https://img/phone-x' }, 10);
+const p2 = catalog.createProduct('p2', { name: 'Phone Y', price: 599, imageUrl: 'https://img/phone-y' }, 5);
+const l1 = catalog.createProduct('l1', { name: 'Laptop Pro', price: 1299, imageUrl: 'https://img/laptop-pro' }, 3);
+
+phones.addItem(p1);
+phones.addItem(p2);
+laptops.addItem(l1);
+
+// Итерация по товарам
+for (const product of catalog.deepProducts(catalog.root)) {
+  console.log(product.name);
+}
+
+// Сбор статистики через visitor
+const visitor = new ViewStatsVisitor();
+catalog.applyVisitor(catalog.root, visitor);
+```
+
+## Структура модуля
+
+- `catalog.ts` — основная реализация каталога
+- `patterns/` — базовые реализации паттернов
+  - `composite.ts` — паттерн Composite
+  - `iterator.ts` — паттерн Iterator
+  - `proxy.ts` — паттерн Proxy
+  - `flyweight.ts` — паттерн Flyweight
+  - `visitor.ts` — паттерн Visitor
